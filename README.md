@@ -213,7 +213,7 @@ keep_idx = compress_fn(k_cache, v_cache, **kwargs)
 
 - Each rank compresses its local heads locally
 - **All ranks must use the same `R`** to keep `context_lens/slot_mapping` consistent across ranks
-- Compression events are aggregated on the main rank for unified metadata updates
+- Compression events recorded on the main rank will be used for metadata update
 
 ### 2) Decoupling logical length from physical cache length
 
