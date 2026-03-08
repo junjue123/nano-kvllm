@@ -1,5 +1,13 @@
 # `nano-kvllm`
+## Table of Contents
 
+- [Quick Start](#quick-start)
+- [What is nano-vllm?](#what-is-nano-vllm)
+- [nano-vllm execution flow (simplified)](#nano-vllm-execution-flow-simplified)
+- [What is KV Cache compression, and why is it hard to deploy?](#what-is-kv-cache-compression-and-why-is-it-hard-to-deploy)
+- [Compression strategy in nano-kvllm](#compression-strategy-in-nano-kvllm)
+- [Code modifications (high-level)](#code-modifications-high-level)
+- [Key notes (must read)](#key-notes-must-read)
 > `nano-kvllm` integrates **KV Cache Compression** into `nano-vllm` while keeping the original `nano-vllm` code layout **as unchanged as possible**.  
 > The goal of `nano-kvllm` is to enable long-context inference with **lower KV-cache memory usage** and **higher decode throughput**, while maintaining generation quality.
 >
@@ -64,8 +72,8 @@ LLMEngine.step()  (loop until all sequences finish)
    │     └── release redundant blocks (BlockManager)
    │
    └── next step() iteration for decode
-
-### Key files
+```
+### Key files in nano-vllm
 
 - `llm_engine.py`: inference entry point; handles request submission, step loop, scheduling/execution orchestration  
 - `scheduler.py`: batching/lifecycle management (`waiting`/`running` queues, preemption, postprocess)  
@@ -91,7 +99,7 @@ When sequence length reaches threshold `S`, select `R (R <= S)` important tokens
 
 ---
 
-## Compression strategy in this project
+## Compression strategy in nano-kvllm
 
 - **Decode-only compression**: compression is applied only during decode (not prefill)
 - Why:
@@ -222,5 +230,5 @@ Specifically:
 
 Some KV-compression methods require query history, so query cache is needed.
 
-For implementation simplicity, this project stores query cache with the same mapping scheme as KV cache (shared `slot_mapping` and `block_tables`).  
+For implementation simplicity, this project stores query cache with the same attention head number and mapping scheme as KV cache (shared `slot_mapping` and `block_tables`).  
 Therefore, **<u>total query blocks must not exceed the number of KV-occupied blocks for current batch sequences, otherwise OOB errors may occur!!!</u>** This is a temporary solution and will be further optimized.
